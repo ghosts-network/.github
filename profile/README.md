@@ -1,4 +1,4 @@
-**GhostNetwork is an education project thath provides training ground for testing high level concepts and different technologies before applying them into production ready code**
+**GhostNetwork is an education project (social network) that provides training ground for testing high level concepts and different technologies before applying them into production ready code**
 
 
 ### Achitecture diagram 

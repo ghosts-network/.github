@@ -2,7 +2,8 @@
 
 
 ### Achitecture diagram 
-![GhostNetwork achitecture overview](https://user-images.githubusercontent.com/9577482/171407506-078367e3-efcf-4acf-bcd2-99b8f90ed8d0.svg)
+![GhostNetwork achitecture overview](https://user-images.githubusercontent.com/9577482/171648656-6d89016a-8358-460e-a9d1-8ccb41e22b4a.svg)
+
 
 - Account - portal for registration and authentication. Provides oauth2 support
 - Gateway - entrypoint for different kinds of application (web spa, mobile app etc). In charge of authorization and data aggregation from other services

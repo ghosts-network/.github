@@ -1,0 +1,87 @@
+version: '3'
+
+services:
+  mongo_storage:
+    image: mongo:5.0.8
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
+    volumes:
+      - ./data/mongo:/data/db
+
+  rabbit:
+    image: rabbitmq:3.10-alpine
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+
+  blob_storage:
+    image: mcr.microsoft.com/azure-storage/azurite
+    ports:
+      - "10000:10000"
+    environment:
+      - AZURITE_ACCOUNTS=${AZURITE_ACCOUNTS}
+    volumes:
+      - ./data/azurite:/workspace
+
+  profiles:
+    image: ghcr.io/ghosts-network/profiles:latest
+    depends_on:
+      - mongo_storage
+    environment:
+      - MONGO_CONNECTION=${MONGO_CONNECTION}
+      - EVENTHUB_TYPE=rabbit
+      - RABBIT_CONNECTION=${RABBIT_CONNECTION}
+
+  content:
+    image: ghcr.io/ghosts-network/content:latest
+    depends_on:
+      - mongo_storage
+    environment:
+      - MONGO_CONNECTION=${MONGO_CONNECTION}
+      - EVENTHUB_TYPE=rabbit
+      - RABBIT_CONNECTION=${RABBIT_CONNECTION}
+
+  account:
+    image: ghcr.io/ghosts-network/account:latest
+    ports:
+      - "6620:80"
+    depends_on:
+      - mongo_storage
+      - profiles
+    environment:
+      - ALLOWED_HOSTS=http://localhost:4200
+      - ISSUER_URI=http://account
+      - SINGING_TYPE=Developer
+      - MONGO_ADDRESS=${MONGO_CONNECTION}
+      - PROFILES_ADDRESS=http://profiles
+      - DEFAULT_CLIENT=angular_spa
+      - EMAIL_SENDER=NULL
+    volumes:
+      - ${PWD}/clients.json:/app/clients.json
+
+  gateway:
+    image: ghcr.io/ghosts-network/gateway:latest
+    ports:
+      - "6610:80"
+    depends_on:
+      - content
+      - account
+      - profiles
+    environment:
+      - ALLOWED_HOSTS=http://localhost:4200
+      - AUTHORITY=http://account
+      - AUTHORITY_REQUIRE_HTTPS=false
+      - CONTENT_ADDRESS=http://content
+      - PROFILES_ADDRESS=http://profiles
+      - BLOB_CONNECTION=${BLOB_STORAGE}
+
+  spa:
+    image: ghcr.io/ghosts-network/spa:latest
+    ports:
+      - "4200:80"
+    depends_on:
+      - gateway
+      - account
+    volumes:
+      - ${PWD}/spa.config:/usr/share/nginx/html/config/config.js

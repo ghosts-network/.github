@@ -1,0 +1,287 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string",
+            "defaultValue": "East US"
+        },
+        "serviceBusNamespaceName": {
+            "type": "string"
+        },
+        "serviceBusApiVersion": {
+            "type": "string",
+            "defaultValue": "2022-01-01-preview",
+            "metadata": {
+                "description": "Service Bus ApiVersion used by the template"
+            }
+        },
+        "storageAccountName": {
+            "type": "string"
+        },
+        "storageAccountApiVersion": {
+            "type": "string",
+            "defaultValue": "2022-05-01",
+            "metadata": {
+                "description": "Storage Account ApiVersion used by the template"
+            }
+        }
+    },
+    "resources": [
+        {
+            "apiVersion": "[parameters('serviceBusApiVersion')]",
+            "name": "[parameters('serviceBusNamespaceName')]",
+            "type": "Microsoft.ServiceBus/Namespaces",
+            "location": "[parameters('location')]",
+            "kind": "Messaging",
+            "sku": {
+                "name": "Standard"
+            },
+            "resources": [
+                {
+                    "apiVersion": "[parameters('serviceBusApiVersion')]",
+                    "name": "ghostnetwork.content.publications.created",
+                    "type": "Topics",
+                    "dependsOn": [
+                        "[concat('Microsoft.ServiceBus/namespaces/', parameters('serviceBusNamespaceName'))]"
+                    ],
+                    "properties": {
+                        "path": "ghostnetwork.content.publications.created"
+                    },
+                    "resources": [
+                        {
+                            "apiVersion": "[parameters('serviceBusApiVersion')]",
+                            "name": "ghostnetwork.newsfeed",
+                            "type": "Subscriptions",
+                            "dependsOn": [
+                                "ghostnetwork.content.publications.created"
+                            ],
+                            "properties": {}
+                        }
+                    ]
+                },
+                {
+                    "apiVersion": "[parameters('serviceBusApiVersion')]",
+                    "name": "ghostnetwork.content.publications.deleted",
+                    "type": "Topics",
+                    "dependsOn": [
+                        "[concat('Microsoft.ServiceBus/namespaces/', parameters('serviceBusNamespaceName'))]"
+                    ],
+                    "properties": {
+                        "path": "ghostnetwork.content.publications.deleted"
+                    },
+                    "resources": [{
+                        "apiVersion": "[parameters('serviceBusApiVersion')]",
+                        "name": "ghostnetwork.newsfeed",
+                        "type": "Subscriptions",
+                        "dependsOn": ["ghostnetwork.content.publications.deleted"],
+                        "properties": {}
+                    }]
+                },
+                {
+                    "apiVersion": "[parameters('serviceBusApiVersion')]",
+                    "name": "ghostnetwork.content.publications.updated",
+                    "type": "Topics",
+                    "dependsOn": [
+                        "[concat('Microsoft.ServiceBus/namespaces/', parameters('serviceBusNamespaceName'))]"
+                    ],
+                    "properties": {
+                        "path": "ghostnetwork.content.publications.updated"
+                    },
+                    "resources": [
+                        {
+                            "apiVersion": "[parameters('serviceBusApiVersion')]",
+                            "name": "ghostnetwork.newsfeed",
+                            "type": "Subscriptions",
+                            "dependsOn": [
+                                "ghostnetwork.content.publications.updated"
+                            ],
+                            "properties": {}
+                        }
+                    ]
+                },
+                {
+                    "apiVersion": "[parameters('serviceBusApiVersion')]",
+                    "name": "ghostnetwork.profiles.friends.requestapproved",
+                    "type": "Topics",
+                    "dependsOn": [
+                        "[concat('Microsoft.ServiceBus/namespaces/', parameters('serviceBusNamespaceName'))]"
+                    ],
+                    "properties": {
+                        "path": "ghostnetwork.profiles.friends.requestapproved"
+                    },
+                    "resources": [
+                        {
+                            "apiVersion": "[parameters('serviceBusApiVersion')]",
+                            "name": "ghostnetwork.newsfeed",
+                            "type": "Subscriptions",
+                            "dependsOn": [
+                                "ghostnetwork.profiles.friends.requestapproved"
+                            ],
+                            "properties": {}
+                        }
+                    ]
+                },
+                {
+                    "apiVersion": "[parameters('serviceBusApiVersion')]",
+                    "name": "ghostnetwork.profiles.friends.requestcancelled",
+                    "type": "Topics",
+                    "dependsOn": [
+                        "[concat('Microsoft.ServiceBus/namespaces/', parameters('serviceBusNamespaceName'))]"
+                    ],
+                    "properties": {
+                        "path": "ghostnetwork.profiles.friends.requestcancelled"
+                    },
+                    "resources": [
+                        {
+                            "apiVersion": "[parameters('serviceBusApiVersion')]",
+                            "name": "ghostnetwork.newsfeed",
+                            "type": "Subscriptions",
+                            "dependsOn": [
+                                "ghostnetwork.profiles.friends.requestcancelled"
+                            ],
+                            "properties": {}
+                        }
+                    ]
+                },
+                {
+                    "apiVersion": "[parameters('serviceBusApiVersion')]",
+                    "name": "ghostnetwork.profiles.friends.requestdeclined",
+                    "type": "Topics",
+                    "dependsOn": [
+                        "[concat('Microsoft.ServiceBus/namespaces/', parameters('serviceBusNamespaceName'))]"
+                    ],
+                    "properties": {
+                        "path": "ghostnetwork.profiles.friends.requestdeclined"
+                    },
+                    "resources": [
+                        {
+                            "apiVersion": "[parameters('serviceBusApiVersion')]",
+                            "name": "ghostnetwork.newsfeed",
+                            "type": "Subscriptions",
+                            "dependsOn": [
+                                "ghostnetwork.profiles.friends.requestdeclined"
+                            ],
+                            "properties": {}
+                        }
+                    ]
+                },
+                {
+                    "apiVersion": "[parameters('serviceBusApiVersion')]",
+                    "name": "ghostnetwork.profiles.friends.requestsent",
+                    "type": "Topics",
+                    "dependsOn": [
+                        "[concat('Microsoft.ServiceBus/namespaces/', parameters('serviceBusNamespaceName'))]"
+                    ],
+                    "properties": {
+                        "path": "ghostnetwork.profiles.friends.requestsent"
+                    },
+                    "resources": [
+                        {
+                            "apiVersion": "[parameters('serviceBusApiVersion')]",
+                            "name": "ghostnetwork.newsfeed",
+                            "type": "Subscriptions",
+                            "dependsOn": [
+                                "ghostnetwork.profiles.friends.requestsent"
+                            ],
+                            "properties": {}
+                        }
+                    ]
+                },
+                {
+                    "apiVersion": "[parameters('serviceBusApiVersion')]",
+                    "name": "ghostnetwork.profiles.updated",
+                    "type": "Topics",
+                    "dependsOn": [
+                        "[concat('Microsoft.ServiceBus/namespaces/', parameters('serviceBusNamespaceName'))]"
+                    ],
+                    "properties": {
+                        "path": "ghostnetwork.profiles.updated"
+                    },
+                    "resources": [
+                        {
+                            "apiVersion": "[parameters('serviceBusApiVersion')]",
+                            "name": "ghostnetwork.content.profileupdatedhandler",
+                            "type": "Subscriptions",
+                            "dependsOn": [
+                                "ghostnetwork.profiles.updated"
+                            ],
+                            "properties": {}
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2022-05-01",
+            "name": "[parameters('storageAccountName')]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "Standard_GRS",
+                "tier": "Standard"
+            },
+            "kind": "StorageV2",
+            "properties": {
+                "defaultToOAuthAuthentication": false,
+                "allowCrossTenantReplication": true,
+                "minimumTlsVersion": "TLS1_2",
+                "allowBlobPublicAccess": true,
+                "allowSharedKeyAccess": true,
+                "networkAcls": {
+                    "bypass": "AzureServices",
+                    "virtualNetworkRules": [],
+                    "ipRules": [],
+                    "defaultAction": "Allow"
+                },
+                "supportsHttpsTrafficOnly": true,
+                "encryption": {
+                    "requireInfrastructureEncryption": false,
+                    "services": {
+                        "file": {
+                            "keyType": "Account",
+                            "enabled": true
+                        },
+                        "blob": {
+                            "keyType": "Account",
+                            "enabled": true
+                        }
+                    },
+                    "keySource": "Microsoft.Storage"
+                },
+                "accessTier": "Hot"
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/blobServices",
+            "apiVersion": "2022-05-01",
+            "name": "[concat(parameters('storageAccountName'), '/default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
+            ],
+            "sku": {
+                "name": "Standard_GRS",
+                "tier": "Standard"
+            },
+            "properties": {
+                "changeFeed": {
+                    "enabled": false
+                },
+                "restorePolicy": {
+                    "enabled": false
+                },
+                "containerDeleteRetentionPolicy": {
+                    "enabled": false
+                },
+                "cors": {
+                    "corsRules": []
+                },
+                "deleteRetentionPolicy": {
+                    "allowPermanentDelete": false,
+                    "enabled": false
+                },
+                "isVersioningEnabled": false
+            }
+        }
+    ]
+}

@@ -9,20 +9,10 @@ services:
     volumes:
       - ./data/mongo:/data/db
 
-  rabbit:
-    image: rabbitmq:3.10-alpine
-    environment:
-      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
-      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
-
-  blob_storage:
-    image: mcr.microsoft.com/azure-storage/azurite
-    ports:
-      - "10000:10000"
-    environment:
-      - AZURITE_ACCOUNTS=${AZURITE_ACCOUNTS}
+  redis:
+    image: redis:7.0.0-alpine
     volumes:
-      - ./data/azurite:/workspace
+      - ./data/redis:/data
 
   profiles:
     image: ghcr.io/ghosts-network/profiles:latest
@@ -30,8 +20,8 @@ services:
       - mongo_storage
     environment:
       - MONGO_CONNECTION=${MONGO_CONNECTION}
-      - EVENTHUB_TYPE=rabbit
-      - RABBIT_CONNECTION=${RABBIT_CONNECTION}
+      - EVENTHUB_TYPE=servicebus
+      - SERVICEBUS_CONNECTION=${SERVICEBUS_CONNECTION}
 
   content:
     image: ghcr.io/ghosts-network/content:latest
@@ -39,8 +29,28 @@ services:
       - mongo_storage
     environment:
       - MONGO_CONNECTION=${MONGO_CONNECTION}
-      - EVENTHUB_TYPE=rabbit
-      - RABBIT_CONNECTION=${RABBIT_CONNECTION}
+      - EVENTHUB_TYPE=servicebus
+      - SERVICEBUS_CONNECTION=${SERVICEBUS_CONNECTION}
+
+  news_feed:
+    image: ghcr.io/ghosts-network/news-feed:latest
+    depends_on: 
+      - profiles
+      - content
+    ports:
+      - "10000:10000"
+    environment:
+      - MONGO_CONNECTION=${NEWS_MONGO_CONNECTION}
+      - PROFILES_ADDRESS=http://profiles
+      - CONTENT_ADDRESS=http://content
+
+  news_feed_listener:
+    image: ghcr.io/ghosts-network/news-feed-listener:latest
+    depends_on:
+      - mongo_storage
+    environment:
+      - MONGO_CONNECTION=${NEWS_MONGO_CONNECTION}
+      - SERVICEBUS_CONNECTION=${SERVICEBUS_CONNECTION}
 
   account:
     image: ghcr.io/ghosts-network/account:latest
@@ -52,6 +62,7 @@ services:
     environment:
       - ALLOWED_HOSTS=http://localhost:4200
       - ISSUER_URI=http://account
+      - OAUTH_CLIENTS_SOURCE=file
       - SINGING_TYPE=Developer
       - MONGO_ADDRESS=${MONGO_CONNECTION}
       - PROFILES_ADDRESS=http://profiles
@@ -68,13 +79,16 @@ services:
       - content
       - account
       - profiles
+      - news_feed
     environment:
       - ALLOWED_HOSTS=http://localhost:4200
       - AUTHORITY=http://account
       - AUTHORITY_REQUIRE_HTTPS=false
       - CONTENT_ADDRESS=http://content
       - PROFILES_ADDRESS=http://profiles
+      - NEWSFEED_ADDRESS=http://news_feed:10000
       - BLOB_CONNECTION=${BLOB_STORAGE}
+      - ENABLE_PERSONALIZED_NEWSFEED=true
 
   spa:
     image: ghcr.io/ghosts-network/spa:latest

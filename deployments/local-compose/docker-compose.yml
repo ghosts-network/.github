@@ -3,6 +3,8 @@ version: '3'
 services:
   mongo_storage:
     image: mongo:5.0.8
+    ports:
+      - "27017:27017"
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_ROOT_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
@@ -14,14 +16,23 @@ services:
     volumes:
       - ./data/redis:/data
 
+  rabbit:
+    image: rabbitmq:3.10-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+
   profiles:
     image: ghcr.io/ghosts-network/profiles:latest
     depends_on:
       - mongo_storage
     environment:
       - MONGO_CONNECTION=${MONGO_CONNECTION}
-      - EVENTHUB_TYPE=servicebus
-      - SERVICEBUS_CONNECTION=${SERVICEBUS_CONNECTION}
+      - EVENTHUB_TYPE=rabbit
+      - RABBIT_CONNECTION=${RABBIT_CONNECTION}
 
   content:
     image: ghcr.io/ghosts-network/content:latest
@@ -29,8 +40,8 @@ services:
       - mongo_storage
     environment:
       - MONGO_CONNECTION=${MONGO_CONNECTION}
-      - EVENTHUB_TYPE=servicebus
-      - SERVICEBUS_CONNECTION=${SERVICEBUS_CONNECTION}
+      - EVENTHUB_TYPE=rabbit
+      - RABBIT_CONNECTION=${RABBIT_CONNECTION}
 
   news_feed:
     image: ghcr.io/ghosts-network/news-feed:latest
@@ -44,13 +55,13 @@ services:
       - PROFILES_ADDRESS=http://profiles
       - CONTENT_ADDRESS=http://content
 
-  news_feed_listener:
-    image: ghcr.io/ghosts-network/news-feed-listener:latest
-    depends_on:
-      - mongo_storage
-    environment:
-      - MONGO_CONNECTION=${NEWS_MONGO_CONNECTION}
-      - SERVICEBUS_CONNECTION=${SERVICEBUS_CONNECTION}
+#  news_feed_listener:
+#    image: ghcr.io/ghosts-network/news-feed-listener:latest
+#    depends_on:
+#      - mongo_storage
+#    environment:
+#      - MONGO_CONNECTION=${NEWS_MONGO_CONNECTION}
+#      - SERVICEBUS_CONNECTION=${SERVICEBUS_CONNECTION}
 
   account:
     image: ghcr.io/ghosts-network/account:latest
@@ -87,7 +98,7 @@ services:
       - CONTENT_ADDRESS=http://content
       - PROFILES_ADDRESS=http://profiles
       - NEWSFEED_ADDRESS=http://news_feed:10000
-      - BLOB_CONNECTION=${BLOB_STORAGE}
+      - FILE_STORAGE_TYPE=local
       - ENABLE_PERSONALIZED_NEWSFEED=true
 
   spa:

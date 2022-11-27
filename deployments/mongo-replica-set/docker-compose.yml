@@ -1,0 +1,38 @@
+version: '3'
+
+services:
+  rs_1:
+    image: mongo:6.0.3
+    container_name: mongo_rs_1
+    ports:
+      - 32121:27017
+    entrypoint: ["mongod","--config","/etc/mongod.conf"]
+    volumes:
+      - ${PWD}/rs1/data:/data/db
+      - ${PWD}/rs1/log:/var/mongo/log
+      - ${PWD}/keyfile:/var/mongo/pki/keyfile
+      - ${PWD}/mongod.conf:/etc/mongod.conf
+
+  rs_2:
+    image: mongo:6.0.3
+    container_name: mongo_rs_2
+    entrypoint: ["mongod","--config","/etc/mongod.conf"]
+    ports:
+      - 32122:27017
+    volumes:
+      - ${PWD}/rs2/data:/data/db
+      - ${PWD}/rs2/log:/var/mongo/log
+      - ${PWD}/keyfile:/var/mongo/pki/keyfile
+      - ${PWD}/mongod.conf:/etc/mongod.conf
+
+  rs_3:
+    image: mongo:6.0.3
+    container_name: mongo_rs_3
+    entrypoint: ["mongod","--config","/etc/mongod.conf"]
+    ports:
+      - 32123:27017
+    volumes:
+      - ${PWD}/rs3/data:/data/db
+      - ${PWD}/rs3/log:/var/mongo/log
+      - ${PWD}/keyfile:/var/mongo/pki/keyfile
+      - ${PWD}/mongod.conf:/etc/mongod.conf

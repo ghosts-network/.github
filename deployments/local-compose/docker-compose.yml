@@ -9,12 +9,12 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_ROOT_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
     volumes:
-      - ./data/mongo:/data/db
+      - mongo:/data/db
 
   redis:
     image: redis:7.0.0-alpine
     volumes:
-      - ./data/redis:/data
+      - redis:/data
 
   rabbit:
     image: rabbitmq:3.10-management-alpine
@@ -45,23 +45,16 @@ services:
 
   news_feed:
     image: ghcr.io/ghosts-network/news-feed:latest
-    depends_on: 
+    command: "--server.enable --listener.enable"
+    depends_on:
       - profiles
       - content
-    ports:
-      - "10000:10000"
     environment:
       - MONGO_CONNECTION=${NEWS_MONGO_CONNECTION}
       - PROFILES_ADDRESS=http://profiles
       - CONTENT_ADDRESS=http://content
-
-#  news_feed_listener:
-#    image: ghcr.io/ghosts-network/news-feed-listener:latest
-#    depends_on:
-#      - mongo_storage
-#    environment:
-#      - MONGO_CONNECTION=${NEWS_MONGO_CONNECTION}
-#      - SERVICEBUS_CONNECTION=${SERVICEBUS_CONNECTION}
+      - EVENTHUB_TYPE=rabbit
+      - RABBIT_CONNECTION=${RABBIT_CONNECTION}
 
   account:
     image: ghcr.io/ghosts-network/account:latest
@@ -97,7 +90,7 @@ services:
       - AUTHORITY_REQUIRE_HTTPS=false
       - CONTENT_ADDRESS=http://content
       - PROFILES_ADDRESS=http://profiles
-      - NEWSFEED_ADDRESS=http://news_feed:10000
+      - NEWSFEED_ADDRESS=http://news_feed
       - FILE_STORAGE_TYPE=local
       - ENABLE_PERSONALIZED_NEWSFEED=true
 
@@ -110,3 +103,7 @@ services:
       - account
     volumes:
       - ${PWD}/spa.config:/usr/share/nginx/html/config/config.js
+
+volumes:
+  mongo:
+  redis:
